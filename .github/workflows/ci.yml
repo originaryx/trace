@@ -98,7 +98,7 @@ jobs:
           NODE_ENV: production
 
       - name: Upload OpenAPI artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: openapi-spec
           path: docs/openapi.json
