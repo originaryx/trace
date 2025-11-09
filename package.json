@@ -1,0 +1,41 @@
+{
+  "name": "originary-trace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Distributed tracing for your content. See which AI services accessed your site and what they took.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/originaryx/trace.git"
+  },
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@9.11.0",
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo run dev --parallel",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "test": "turbo run test",
+    "seed": "pnpm --filter @originary/trace-api run seed",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "typecheck": "turbo run typecheck",
+    "validate": "./scripts/validate-oss.sh",
+    "check-deps": "./scripts/check-deps.sh",
+    "precommit": "./scripts/validate-oss.sh"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.10",
+    "eslint": "^8.57.0",
+    "prettier": "^3.3.3",
+    "turbo": "^2.1.2",
+    "typescript": "^5.6.3",
+    "vitest": "^2.1.4"
+  }
+}

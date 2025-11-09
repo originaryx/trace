@@ -1,0 +1,18 @@
+name = "trace-worker"
+main = "src/index.ts"
+compatibility_date = "2025-11-08"
+
+# Configuration for development
+[env.dev]
+vars = { PEAC_ENDPOINT = "http://localhost:8787" }
+
+# Configuration for production
+[env.production]
+# Set these as secrets via: wrangler secret put PEAC_KEY
+# wrangler secret put PEAC_SECRET
+vars = { PEAC_ENDPOINT = "https://api.trace.originary.xyz" }
+
+# Route configuration (uncomment and adjust for your domain)
+# [[routes]]
+# pattern = "example.com/*"
+# zone_name = "example.com"

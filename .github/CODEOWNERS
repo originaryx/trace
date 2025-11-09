@@ -1,0 +1,27 @@
+# Originary Trace Code Owners
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default owner for everything
+* @originaryx/core
+
+# API and backend
+/apps/api/ @originaryx/backend
+/apps/worker/ @originaryx/backend
+
+# Frontend
+/apps/web/ @originaryx/frontend
+
+# Infrastructure and deployment
+/infra/ @originaryx/ops
+docker-compose*.yml @originaryx/ops
+Dockerfile* @originaryx/ops
+
+# Documentation and legal
+*.md @originaryx/docs
+LICENSE @originaryx/legal
+TRADEMARKS.md @originaryx/legal
+SECURITY.md @originaryx/security
+PRIVACY.md @originaryx/legal
+
+# CI/CD
+/.github/ @originaryx/ops

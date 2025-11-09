@@ -1,0 +1,129 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  build:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: trace_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Prisma generate
+        run: pnpm --filter @originary/trace-api run prisma:generate
+
+      - name: Prisma migrate
+        run: pnpm --filter @originary/trace-api run prisma:migrate:test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/trace_test
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Type check
+        run: pnpm run typecheck
+
+      - name: Run tests
+        run: pnpm run test
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/trace_test
+          REDIS_URL: redis://localhost:6379
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Export OpenAPI
+        run: |
+          # Start API server in background
+          pnpm --filter @originary/trace-api run start &
+          API_PID=$!
+
+          # Wait for server to be ready
+          timeout 30 bash -c 'until curl -f http://localhost:8787/health; do sleep 1; done'
+
+          # Export OpenAPI spec
+          mkdir -p docs
+          curl http://localhost:8787/docs/json > docs/openapi.json
+
+          # Stop server
+          kill $API_PID
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/trace_test
+          REDIS_URL: redis://localhost:6379
+          API_SECRET_MASTER_KEY: dGVzdC1tYXN0ZXIta2V5LWZvci1jaS10ZXN0aW5nLTMyYg==
+          PEAC_JWS_PUBLIC: test-public-key
+          NODE_ENV: production
+
+      - name: Upload OpenAPI artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openapi-spec
+          path: docs/openapi.json
+
+  security:
+    name: Security Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check for AI artifacts
+        run: |
+          if git ls-files | grep -E '\.(prompt|ai|claude|cursor|aider)'; then
+            echo "Error: AI artifacts found in repository"
+            exit 1
+          fi
+          if git ls-files | grep -E 'ai-context|prompts/'; then
+            echo "Error: AI context files found in repository"
+            exit 1
+          fi

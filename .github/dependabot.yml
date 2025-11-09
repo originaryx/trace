@@ -1,0 +1,83 @@
+# Dependabot configuration for Originary Trace
+# https://docs.github.com/en/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+
+version: 2
+updates:
+  # API dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/api"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      fastify:
+        patterns:
+          - "@fastify/*"
+          - "fastify"
+      prisma:
+        patterns:
+          - "@prisma/*"
+          - "prisma"
+    labels:
+      - "dependencies"
+      - "api"
+
+  # Web app dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/web"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      next:
+        patterns:
+          - "next"
+          - "react"
+          - "react-dom"
+    labels:
+      - "dependencies"
+      - "web"
+
+  # Worker dependencies
+  - package-ecosystem: "npm"
+    directory: "/apps/worker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "worker"
+
+  # Root dependencies
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "root"
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "ci"
+
+  # Docker
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    labels:
+      - "dependencies"
+      - "docker"

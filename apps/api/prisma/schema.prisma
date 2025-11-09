@@ -1,0 +1,174 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id          String            @id @default(uuid())
+  name        String
+  domain      String            @unique
+  createdAt   DateTime          @default(now())
+  apiKeys     ApiKey[]
+  policies    PolicyVersion[]
+  memberships Membership[]
+  settings    TenantSetting?
+  webhooks    Webhook[]
+  events      CrawlEvent[]
+  violations  PolicyViolation[]
+  resources   Resource[]
+
+  @@map("tenants")
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  name      String?
+  secret    String // AES-256-GCM encrypted
+  createdAt DateTime @default(now())
+
+  @@index([tenantId], map: "idx_api_keys_tenant")
+  @@map("api_keys")
+}
+
+model CrawlEvent {
+  id            BigInt    @id @default(autoincrement())
+  tenantId      String
+  tenant        Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ts            DateTime  // Server time (normalized, trusted)
+  clientTs      DateTime? @map("client_ts") // Client-provided timestamp (untrusted)
+  host          String
+  path          String
+  method        String
+  status        Int?
+  ua            String
+  ipPrefix      String?  @map("ip_prefix")
+  asn           String?
+  acceptLang    String?  @map("accept_lang")
+  isBot         Boolean? @map("is_bot")
+  crawlerFamily String?  @map("crawler_family")
+  bytes         Int?
+  reqTimeMs     Int?     @map("req_time_ms")
+  source        String? // 'worker' | 'nginx' | 'cloudflare' | 'fingerprint'
+  cfRayId       String?  @map("cf_ray_id")
+  cfBotScore    Int?     @map("cf_bot_score")
+  cfBotScoreSrc String?  @map("cf_bot_score_src")
+  cfBotTags     String[] @map("cf_bot_tags")
+  fpVisitorId   String?  @map("fp_visitor_id")
+  fpRequestId   String?  @map("fp_request_id")
+  fpBotResult   String?  @map("fp_bot_result")
+  // Data Footprint fields
+  responseBytes Int?     @map("response_bytes")
+  contentType   String?  @map("content_type")
+  etag          String?
+  resourceHash  String?  @map("resource_hash") // SHA-256 hash for deduplication
+
+  @@index([tenantId, ts], map: "idx_events_tenant_ts")
+  @@index([crawlerFamily], map: "idx_events_family")
+  @@index([isBot], map: "idx_events_isbot")
+  @@index([host, path], map: "idx_events_path")
+  @@index([resourceHash], map: "idx_events_resource_hash")
+  @@map("crawl_events")
+}
+
+model PolicyVersion {
+  id         String   @id @default(uuid())
+  tenantId   String
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  version    Int
+  policyJson Json     @map("policy_json")
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId], map: "idx_policy_versions_tenant")
+  @@map("policy_versions")
+}
+
+model PolicyViolation {
+  id            BigInt   @id @default(autoincrement())
+  tenantId      String
+  tenant        Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  ts            DateTime
+  path          String
+  ua            String
+  crawlerFamily String?  @map("crawler_family")
+  evidenceHash  String?  @map("evidence_hash")
+
+  @@index([tenantId, ts], map: "idx_violations_tenant_ts")
+  @@map("policy_violations")
+}
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  name        String?
+  createdAt   DateTime     @default(now())
+  memberships Membership[]
+
+  @@map("users")
+}
+
+model Membership {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  role      String // owner|admin|viewer
+  createdAt DateTime @default(now())
+
+  @@unique([userId, tenantId])
+  @@index([userId], map: "idx_memberships_user")
+  @@index([tenantId], map: "idx_memberships_tenant")
+  @@map("memberships")
+}
+
+model TenantSetting {
+  id           String   @id @default(cuid())
+  tenantId     String   @unique
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  corsOrigins  String?  @map("cors_origins")
+  slackWebhook String?  @map("slack_webhook")
+  emailFrom    String?  @map("email_from")
+  createdAt    DateTime @default(now())
+
+  @@map("tenant_settings")
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  tenantId  String
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  url       String
+  secret    String
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@index([tenantId], map: "idx_webhooks_tenant")
+  @@map("webhooks")
+}
+
+model Resource {
+  id              String   @id @default(cuid())
+  tenantId        String
+  tenant          Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  host            String
+  path            String
+  contentHash     String   @map("content_hash") // SHA-256 of response body
+  contentType     String?  @map("content_type")
+  contentLength   Int      @map("content_length")
+  estimatedTokens Int?     @map("estimated_tokens") // Estimated LLM tokens
+  firstSeenAt     DateTime @default(now()) @map("first_seen_at")
+  lastSeenAt      DateTime @default(now()) @map("last_seen_at")
+  accessCount     Int      @default(0) @map("access_count")
+  botAccessCount  Int      @default(0) @map("bot_access_count")
+
+  @@unique([tenantId, host, path, contentHash])
+  @@index([tenantId, lastSeenAt], map: "idx_resources_tenant_last_seen")
+  @@index([contentHash], map: "idx_resources_content_hash")
+  @@map("resources")
+}
