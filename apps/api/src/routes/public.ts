@@ -2,30 +2,6 @@ import { FastifyPluginAsync } from 'fastify';
 import { getTenantByDomain } from '../auth.js';
 
 const plugin: FastifyPluginAsync = async (app) => {
-  // Public stats endpoint
-  app.get('/public/stats', async (req, rep) => {
-    const tenantDomain = String((req.query as any).tenant || '');
-
-    if (!tenantDomain) {
-      return rep.code(400).send({ error: 'missing_tenant_parameter' });
-    }
-
-    const tenant = await getTenantByDomain(tenantDomain);
-    if (!tenant) {
-      return rep.code(404).send({ error: 'tenant_not_found' });
-    }
-
-    const total = await (app as any).db.crawlEvent.count({
-      where: { tenantId: tenant.id },
-    });
-
-    const bots = await (app as any).db.crawlEvent.count({
-      where: { tenantId: tenant.id, isBot: true },
-    });
-
-    return rep.send({ bots, total });
-  });
-
   // SVG badge endpoint
   app.get('/badge/:domain.svg', async (req, rep) => {
     const domain = (req.params as any).domain;
