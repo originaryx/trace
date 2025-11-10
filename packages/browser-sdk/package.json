@@ -5,7 +5,7 @@
   "main": "trace.js",
   "scripts": {
     "build": "terser trace.js -o trace.min.js --compress --mangle",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"No tests for browser SDK (manual testing only)\""
   },
   "keywords": [
     "originary",
