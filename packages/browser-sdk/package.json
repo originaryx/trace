@@ -2,9 +2,9 @@
   "name": "@originary/trace-widget",
   "version": "0.1.0",
   "description": "Lightweight JavaScript widget for Originary Trace",
-  "main": "trace-widget.js",
+  "main": "trace.js",
   "scripts": {
-    "build": "terser trace-widget.js -o trace-widget.min.js --compress --mangle",
+    "build": "terser trace.js -o trace.min.js --compress --mangle",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
