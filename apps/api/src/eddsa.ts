@@ -1,4 +1,8 @@
 import * as ed from '@noble/ed25519';
+import { createHash } from 'crypto';
+
+// Configure SHA-512 for Node.js environment
+ed.etc.sha512Sync = (...m) => createHash('sha512').update(Buffer.concat(m as any)).digest();
 
 /**
  * Sign a message with Ed25519
