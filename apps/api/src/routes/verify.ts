@@ -1,6 +1,6 @@
 import { FastifyPluginAsync } from 'fastify';
 import { verifyDetached } from '../eddsa.js';
-import { fetchJWKS, getPubKeyByKid } from '../verify-cache.js';
+import { fetchJWKS } from '../verify-cache.js';
 
 const plugin: FastifyPluginAsync = async (app) => {
   app.post('/verify', async (req, rep) => {

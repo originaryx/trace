@@ -198,7 +198,7 @@ const plugin: FastifyPluginAsync = async (app) => {
 
     // Calculate date range
     const endDate = query.end ? new Date(query.end) : new Date();
-    let startDate = query.start ? new Date(query.start) : new Date(endDate);
+    const startDate = query.start ? new Date(query.start) : new Date(endDate);
 
     if (!query.start) {
       startDate.setMonth(startDate.getMonth() - 1);

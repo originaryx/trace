@@ -243,12 +243,12 @@ await app.register(swaggerUI, {
 });
 
 // Health check (liveness probe)
-app.get('/health', async (req, rep) => {
+app.get('/health', async (_req, _rep) => {
   return { status: 'ok', timestamp: Date.now() };
 });
 
 // Liveness endpoint (alias for /health)
-app.get('/healthz', async (req, rep) => {
+app.get('/healthz', async (_req, _rep) => {
   return { status: 'ok', timestamp: Date.now() };
 });
 

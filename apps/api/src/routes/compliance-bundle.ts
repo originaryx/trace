@@ -2,8 +2,6 @@ import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { signJws } from '../eddsa.js';
 import { getDataFootprint } from '../data-footprint.js';
-import * as crypto from 'crypto';
-import { Readable } from 'stream';
 
 const BundleQuerySchema = z.object({
   year: z.string().regex(/^\d{4}$/),
