@@ -1,0 +1,10 @@
+# Gitleaks ignore file for false positives
+# Format: <fingerprint>
+
+# CI test credentials (clearly marked as test values)
+31fdc687c17fdc1a0488a22a1be5c04eaf4f5dfe:.github/workflows/ci.yml:generic-api-key:96
+
+# Documentation examples (placeholder API keys for integration guide)
+31fdc687c17fdc1a0488a22a1be5c04eaf4f5dfe:docs/INTEGRATION_GUIDE.md:generic-api-key:29
+31fdc687c17fdc1a0488a22a1be5c04eaf4f5dfe:docs/INTEGRATION_GUIDE.md:generic-api-key:146
+31fdc687c17fdc1a0488a22a1be5c04eaf4f5dfe:docs/INTEGRATION_GUIDE.md:generic-api-key:147
